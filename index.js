@@ -1,24 +1,22 @@
 import TelegramBot from 'node-telegram-bot-api';
 import OpenAI from 'openai';
 
-// خواندن متغیرهای محیطی
-const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
-const AGENTROUTER_API_KEY = process.env.AGENTROUTER_API_KEY;
-const AGENTROUTER_BASE_URL = process.env.AGENTROUTER_BASE_URL || 'https://agentrouter.org/v1';
-const MODEL_NAME = process.env.MODEL_NAME || 'claude-3-5-sonnet';
+const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN?.trim();
+const AGENTROUTER_API_KEY = process.env.AGENTROUTER_API_KEY?.trim();
+// حذف فواضل احتمالی و تنظیم آدرس پیش‌فرض معتبر
+const AGENTROUTER_BASE_URL = (process.env.AGENTROUTER_BASE_URL || 'https://agentrouter.org/v1').trim();
+const MODEL_NAME = (process.env.MODEL_NAME || 'claude-3-5-sonnet').trim();
 
 if (!TELEGRAM_TOKEN || !AGENTROUTER_API_KEY) {
   console.error('Error: TELEGRAM_TOKEN and AGENTROUTER_API_KEY must be set.');
   process.exit(1);
 }
 
-// مقداردهی اولیه کلاینت OpenAI برای Agent Router
 const openai = new OpenAI({
   apiKey: AGENTROUTER_API_KEY,
   baseURL: AGENTROUTER_BASE_URL
 });
 
-// مقداردهی اولیه ربات تلگرام (Polling)
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
 bot.on('message', async (msg) => {
@@ -29,7 +27,6 @@ bot.on('message', async (msg) => {
     return bot.sendMessage(chatId, 'سلام! من ربات متصل به Agent Router هستم. پیام خود را ارسال کنید.');
   }
 
-  // ارسال حالت Typing به کاربر
   bot.sendChatAction(chatId, 'typing');
 
   try {
@@ -45,7 +42,7 @@ bot.on('message', async (msg) => {
     bot.sendMessage(chatId, reply);
   } catch (error) {
     console.error('API Error:', error.message);
-    bot.sendMessage(chatId, 'خطایی در ارتباط با مدل هوش مصنوعی رخ داد.');
+    bot.sendMessage(chatId, `خطا در ارتباط با API:\n${error.message}`);
   }
 });
 
